@@ -1,0 +1,33 @@
+{
+  "name": "sprite-reader",
+  "version": "0.0.1",
+  "description": "Play TexturePacker JSON Array exports in a canvas.",
+  "author": "Arthur Muchir",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf dist/**",
+    "build": "npm run clean && rollup -c && uglifyjs dist/sprite-reader.js -o dist/sprite-reader.min.js"
+  },
+  "main": "src/SpriteReader.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthurmuchir/moon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arthurmuchir/moon/issues"
+  },
+  "keywords": [
+    "TexturePacker",
+    "Spritesheet",
+    "Animation",
+    "Sprite",
+    "Atlas"
+  ],
+  "devDependencies": {
+    "babel-preset-es2015-rollup": "^1.1.1",
+    "eslint": "^1.10.3",
+    "rollup": "^0.25.4",
+    "rollup-plugin-babel": "^2.3.9",
+    "uglify-js": "^2.6.1"
+  }
+}
