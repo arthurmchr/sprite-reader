@@ -1,5 +1,3 @@
-# WORK IN PROGRESS
-
 # sprite-reader
 
 Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).
@@ -12,12 +10,11 @@ Little TexturePacker animation engine. It allows you to play in a canvas your Te
 ## Installation
 
 ```
-npm install -S sprite-reader
 ```
 
 ## Example
 
-```
+```js
 import SpriteReader from 'sprite-reader';
 
 const image = new Image();
@@ -48,47 +45,60 @@ function animate() {
 animate();
 ```
 
+### Browser compatibility
+
+Should works in IE9+ browsers (canvas compatibility).
+
+For IE9 support you will have to install :
+- `perfnow` with `npm install -S perfnow`
+- a WeakMap polyfill (Babel Polyfill)
+
 ## Documentation
 
 ### Constructor
 
-```
-var sprite = new SpriteReader(image, json, options);
-```
+`var sprite = new SpriteReader(image, json, [options]);`
 
-#### Parameters
-
-- image
-- json
-- autoplay
-- fillColor
-- fps
-- from
-- loop
-- onComplete
-- onRepeat
-- onRepeatComplete
-- repeat
-- retina
-- target
-- to
+- `image`
+- `json`
+- `autoplay`
+- `fillColor`
+- `fps`
+- `from`
+- `loop`
+- `onComplete`
+- `onRepeat`
+- `onRepeatComplete`
+- `repeat`
+- `retina`
+- `target`
+- `to`
 
 ### Methods
 
-- update
-- play
-- pause
-- stop
-- reverse
-- goFromTo
-- goToAndStop
+`sprite.update()`
+
+`sprite.play()`
+
+`sprite.pause()`
+
+`sprite.stop()`
+
+`sprite.reverse()`
+
+`sprite.goFromTo()`
+
+`sprite.goToAndStop()`
 
 ### Properties
 
-- target
-- fps
-- loop
-- repeat
+`target`
+
+`fps`
+
+`loop`
+
+`repeat`
 
 ## Development
 
@@ -96,11 +106,3 @@ var sprite = new SpriteReader(image, json, options);
 npm install
 npm run build
 ```
-
-### Browser compatibility
-
-Should works in IE9+ browsers (canvas compatibility). It has been test in Chrome 48.
-
-For IE9 support you will have to install :
-- `perfnow` with `npm install -S perfnow`
-- a WeakMap polyfill (Babel Polyfill)
