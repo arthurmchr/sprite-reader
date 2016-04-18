@@ -7,6 +7,14 @@ Little TexturePacker animation engine. It allows you to play in a canvas your Te
 - cache image in an offscreen canvas to optimize further calls to drawImage.
 - sprite `update` function has to be called in a requestAnimationFrame loop by your own. Therefore, there is only one raf to handle, not multiple ones.
 
+### Browser compatibility
+
+Should works in IE9+ browsers (canvas compatibility).
+
+For IE9 support you will have to install :
+- `perfnow` with `npm install -S perfnow`
+- a WeakMap polyfill (Babel Polyfill)
+
 ## Installation
 
 ```
@@ -45,19 +53,11 @@ function animate() {
 animate();
 ```
 
-### Browser compatibility
-
-Should works in IE9+ browsers (canvas compatibility).
-
-For IE9 support you will have to install :
-- `perfnow` with `npm install -S perfnow`
-- a WeakMap polyfill (Babel Polyfill)
-
 ## Documentation
 
 ### Constructor
 
-`var sprite = new SpriteReader(image, json, [options]);`
+`const sprite = new SpriteReader(image, json, [options]);`
 
 - `image`
 - `json`
