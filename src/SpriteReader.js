@@ -38,7 +38,7 @@ export default class SpriteReader {
 			side: 1,
 			target: target ? target : document.createElement('canvas'),
 			then: null,
-			to: to ? to : json.frames.length
+			to: to ? to : json.frames.length - 1
 		});
 
 		if (!target) {
@@ -157,10 +157,7 @@ export default class SpriteReader {
 
 		this.draw();
 
-		if (
-			_.get(this).current + 1 === _.get(this).to && _.get(this).side === 1 ||
-			_.get(this).current - 1 === _.get(this).to && _.get(this).side === -1
-		) {
+		if (_.get(this).current === _.get(this).to) {
 
 			_.get(this).currentRepeat++;
 
@@ -200,6 +197,20 @@ export default class SpriteReader {
 
 		if (side === 1 || side === -1) _.get(this).side = side;
 		else _.get(this).side = _.get(this).side === 1 ? -1 : 1;
+
+		const tmpFrom = _.get(this).from;
+		const tmpTo = _.get(this).to;
+
+		if (_.get(this).side === 1) {
+
+			_.get(this).from = Math.min(tmpFrom, tmpTo);
+			_.get(this).to = Math.max(tmpFrom, tmpTo);
+		}
+		else {
+
+			_.get(this).from = Math.max(tmpFrom, tmpTo);
+			_.get(this).to = Math.min(tmpFrom, tmpTo);
+		}
 	}
 
 	goFromTo(from, to) {
@@ -238,5 +249,20 @@ export default class SpriteReader {
 
 		_.get(this).repeat = nbr;
 		_.get(this).currentRepeat = 0;
+	}
+
+	set onComplete(fn) {
+
+		_.get(this).onComplete = fn;
+	}
+
+	set onRepeat(fn) {
+
+		_.get(this).onRepeat = fn;
+	}
+
+	set onRepeatComplete(fn) {
+
+		_.get(this).onRepeatComplete = fn;
 	}
 }
