@@ -82,7 +82,7 @@ var SpriteReader = function () {
 			side: 1,
 			target: target ? target : document.createElement('canvas'),
 			then: null,
-			to: to ? to : json.frames.length
+			to: to ? to : json.frames.length - 1
 		});
 
 		if (!target) {
@@ -196,7 +196,7 @@ var SpriteReader = function () {
 
 			this.draw();
 
-			if (_.get(this).current + 1 === _.get(this).to && _.get(this).side === 1 || _.get(this).current - 1 === _.get(this).to && _.get(this).side === -1) {
+			if (_.get(this).current === _.get(this).to) {
 
 				_.get(this).currentRepeat++;
 
@@ -209,7 +209,7 @@ var SpriteReader = function () {
 					_.get(this).isPlaying = false;
 				} else if (!_.get(this).repeat) _.get(this).isPlaying = false;
 
-				_.get(this).current = _.get(this).from;
+				if (_.get(this).repeat) _.get(this).current = _.get(this).from;
 			} else _.get(this).current += _.get(this).side;
 		}
 	}, {
@@ -236,6 +236,19 @@ var SpriteReader = function () {
 		value: function reverse(side) {
 
 			if (side === 1 || side === -1) _.get(this).side = side;else _.get(this).side = _.get(this).side === 1 ? -1 : 1;
+
+			var tmpFrom = _.get(this).from;
+			var tmpTo = _.get(this).to;
+
+			if (_.get(this).side === 1) {
+
+				_.get(this).from = Math.min(tmpFrom, tmpTo);
+				_.get(this).to = Math.max(tmpFrom, tmpTo);
+			} else {
+
+				_.get(this).from = Math.max(tmpFrom, tmpTo);
+				_.get(this).to = Math.min(tmpFrom, tmpTo);
+			}
 		}
 	}, {
 		key: 'goFromTo',
@@ -279,6 +292,24 @@ var SpriteReader = function () {
 
 			_.get(this).repeat = nbr;
 			_.get(this).currentRepeat = 0;
+		}
+	}, {
+		key: 'onComplete',
+		set: function set(fn) {
+
+			_.get(this).onComplete = fn;
+		}
+	}, {
+		key: 'onRepeat',
+		set: function set(fn) {
+
+			_.get(this).onRepeat = fn;
+		}
+	}, {
+		key: 'onRepeatComplete',
+		set: function set(fn) {
+
+			_.get(this).onRepeatComplete = fn;
 		}
 	}]);
 	return SpriteReader;
