@@ -172,7 +172,7 @@ export default class SpriteReader {
 			}
 			else if (!_.get(this).repeat) _.get(this).isPlaying = false;
 
-			_.get(this).current = _.get(this).from;
+			if (_.get(this).repeat) _.get(this).current = _.get(this).from;
 		}
 		else _.get(this).current += _.get(this).side;
 	}
