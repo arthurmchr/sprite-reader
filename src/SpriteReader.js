@@ -2,11 +2,13 @@ const _ = new WeakMap();
 
 export default class SpriteReader {
 
-	constructor(image, json, {
+	constructor({
 		autoplay = true,
 		fillColor = null,
 		fps = 30,
 		from = 0,
+		image,
+		json,
 		loop = false,
 		onComplete = null,
 		onRepeat = null,
@@ -19,10 +21,13 @@ export default class SpriteReader {
 
 		if (!image) throw new Error('image parameter can not be null');
 		if (!json) throw new Error('json parameter can not be null');
+		if (image.length && json.length && image.length !== json.length) throw new Error('image length must be equal to json length');
 		if (loop && repeat) throw new Error('you can not have loop and repeat parameters defined');
 
 		_.set(this, {
-			cacheTarget: document.createElement('canvas'),
+			cacheTarget: [],
+			ctx: null,
+			ctxCache: [],
 			current: from,
 			currentRepeat: 0,
 			fillColor,
@@ -31,6 +36,7 @@ export default class SpriteReader {
 			interval: 1000 / fps,
 			isPlaying: autoplay,
 			json,
+			multipackSize: image.length ? image.length : 1,
 			onComplete,
 			onRepeat,
 			onRepeatComplete,
@@ -41,26 +47,38 @@ export default class SpriteReader {
 			to: to ? to : json.frames.length - 1
 		});
 
-		if (!target) {
+		if (!_.get(this).image.length) _.get(this).image = [_.get(this).image];
+		if (!_.get(this).json.length) _.get(this).json = [_.get(this).json];
 
-			_.get(this).target.width = json.frames[0].sourceSize.w;
-			_.get(this).target.height = json.frames[0].sourceSize.h;
+		for (let i = 0; i < _.get(this).multipackSize; i++) {
 
-			_.get(this).target.style.width = `${json.frames[0].sourceSize.w / (retina ? 2 : 1)}px`;
-			_.get(this).target.style.height = `${json.frames[0].sourceSize.h / (retina ? 2 : 1)}px`;
+			_.get(this).image[i] = image[i];
+			_.get(this).json[i] = json[i];
+
+			_.get(this).cacheTarget[i] = document.createElement('canvas');
+
+			_.get(this).cacheTarget[i].width = json[i].meta.size.w;
+			_.get(this).cacheTarget[i].height = json[i].meta.size.h;
+
+			_.get(this).ctxCache[i] = _.get(this).cacheTarget[i].getContext('2d');
 		}
 
-		_.get(this).cacheTarget.width = json.meta.size.w;
-		_.get(this).cacheTarget.height = json.meta.size.h;
+		if (!target) {
+
+			_.get(this).target.width = json[0].frames[0].sourceSize.w;
+			_.get(this).target.height = json[0].frames[0].sourceSize.h;
+
+			_.get(this).target.style.width = `${_.get(this).target.width / (retina ? 2 : 1)}px`;
+			_.get(this).target.style.height = `${_.get(this).target.height / (retina ? 2 : 1)}px`;
+		}
 
 		_.get(this).ctx = _.get(this).target.getContext('2d');
-		_.get(this).ctxCache = _.get(this).cacheTarget.getContext('2d');
 
 		if (fillColor) _.get(this).ctx.fillStyle = fillColor;
 
-		if (typeof from === 'string') _.get(this).from = this.getAssociatedFrameNumber(from);
+		// if (typeof from === 'string') _.get(this).from = this.getAssociatedFrameNumber(from);
 
-		if (typeof to === 'string') _.get(this).to = this.getAssociatedFrameNumber(to);
+		// if (typeof to === 'string') _.get(this).to = this.getAssociatedFrameNumber(to);
 
 		if (from > _.get(this).to) _.get(this).side = -1;
 
@@ -70,17 +88,20 @@ export default class SpriteReader {
 		this.draw();
 	}
 
-	getAssociatedFrameNumber(name) {
+	// getAssociatedFrameNumber(name) {
 
-		for (let i = 0; i < _.get(this).json.length; i++) {
+	// 	for (let i = 0; i < _.get(this).json.length; i++) {
 
-			if (_.get(this).json[i].filename === name) return i;
-		}
-	}
+	// 		if (_.get(this).json[i].filename === name) return i;
+	// 	}
+	// }
 
 	drawCache() {
 
-		_.get(this).ctxCache.drawImage(_.get(this).image, 0, 0);
+		for (let i = 0; i < _.get(this).multipackSize; i++) {
+
+			_.get(this).ctxCache[i].drawImage(_.get(this).image[i], 0, 0);
+		}
 	}
 
 	draw() {
