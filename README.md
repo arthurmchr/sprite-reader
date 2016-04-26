@@ -22,6 +22,13 @@ For IE9 support you will have to install :
 
 ## Example
 
+In order to work, TexturePacker configuration must follow some rules :
+- `Algorithm: Basic`
+- `Sort by: Name`
+- `Sort order: Ascending`
+
+If you use Multipack, `Detect identical sprites` has to be unchecked.
+
 ```js
 import SpriteReader from 'sprite-reader';
 

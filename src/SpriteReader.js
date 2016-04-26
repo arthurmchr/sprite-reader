@@ -2,33 +2,35 @@ const _ = new WeakMap();
 
 export default class SpriteReader {
 
-	constructor({
+	constructor(image, json, {
 		autoplay = true,
 		fillColor = null,
 		fps = 30,
 		from = 0,
-		image,
-		json,
 		loop = false,
 		onComplete = null,
 		onRepeat = null,
 		onRepeatComplete = null,
 		repeat = 0,
 		retina = false,
-		target = null,
-		to = 0
+		canvasTarget = null,
+		to = null
 	} = {}) {
 
 		if (!image) throw new Error('image parameter can not be null');
 		if (!json) throw new Error('json parameter can not be null');
 		if (image.length && json.length && image.length !== json.length) throw new Error('image length must be equal to json length');
+		if (image.length && !json.length || json.length && !image.length) throw new Error('image and json must be of same type');
 		if (loop && repeat) throw new Error('you can not have loop and repeat parameters defined');
 
 		_.set(this, {
-			cacheTarget: [],
-			ctx: null,
+			canvasCache: [],
+			canvasTarget: canvasTarget ? canvasTarget : document.createElement('canvas'),
 			ctxCache: [],
+			ctxTarget: null,
 			current: from,
+			currentRelatedToPack: from,
+			currentPack: 0,
 			currentRepeat: 0,
 			fillColor,
 			from,
@@ -42,39 +44,54 @@ export default class SpriteReader {
 			onRepeatComplete,
 			repeat: loop ? -1 : repeat,
 			side: 1,
-			target: target ? target : document.createElement('canvas'),
 			then: null,
-			to: to ? to : json.frames.length - 1
+			to
 		});
 
 		if (!_.get(this).image.length) _.get(this).image = [_.get(this).image];
 		if (!_.get(this).json.length) _.get(this).json = [_.get(this).json];
 
+		if (_.get(this).to === null) {
+
+			let total = 0;
+
+			for (let i = 0; i < _.get(this).multipackSize; i++) {
+
+				total += _.get(this).json[i].frames.length;
+			}
+
+			_.get(this).to = total - 1;
+		}
+
+		const tmpCanvas = document.createElement('canvas');
+
 		for (let i = 0; i < _.get(this).multipackSize; i++) {
 
-			_.get(this).image[i] = image[i];
-			_.get(this).json[i] = json[i];
+			// _.get(this).image[i] = image[i];
+			// _.get(this).json[i] = json[i];
 
-			_.get(this).cacheTarget[i] = document.createElement('canvas');
+			_.get(this).canvasCache[i] = tmpCanvas.cloneNode(false);
 
-			_.get(this).cacheTarget[i].width = json[i].meta.size.w;
-			_.get(this).cacheTarget[i].height = json[i].meta.size.h;
+			_.get(this).canvasCache[i].width = _.get(this).json[i].meta.size.w;
+			_.get(this).canvasCache[i].height = _.get(this).json[i].meta.size.h;
 
-			_.get(this).ctxCache[i] = _.get(this).cacheTarget[i].getContext('2d');
+			_.get(this).ctxCache[i] = _.get(this).canvasCache[i].getContext('2d');
 		}
 
-		if (!target) {
+		if (!canvasTarget) {
 
-			_.get(this).target.width = json[0].frames[0].sourceSize.w;
-			_.get(this).target.height = json[0].frames[0].sourceSize.h;
+			_.get(this).canvasTarget.width = _.get(this).json[0].frames[0].sourceSize.w;
+			_.get(this).canvasTarget.height = _.get(this).json[0].frames[0].sourceSize.h;
 
-			_.get(this).target.style.width = `${_.get(this).target.width / (retina ? 2 : 1)}px`;
-			_.get(this).target.style.height = `${_.get(this).target.height / (retina ? 2 : 1)}px`;
+			_.get(this).canvasTarget.style.width = `${_.get(this).canvasTarget.width / (retina ? 2 : 1)}px`;
+			_.get(this).canvasTarget.style.height = `${_.get(this).canvasTarget.height / (retina ? 2 : 1)}px`;
+
+			_.get(this).canvasTarget.setAttribute('moz-opaque', '');
 		}
 
-		_.get(this).ctx = _.get(this).target.getContext('2d');
+		_.get(this).ctxTarget = _.get(this).canvasTarget.getContext('2d');
 
-		if (fillColor) _.get(this).ctx.fillStyle = fillColor;
+		if (fillColor) _.get(this).ctxTarget.fillStyle = fillColor;
 
 		// if (typeof from === 'string') _.get(this).from = this.getAssociatedFrameNumber(from);
 
@@ -85,7 +102,8 @@ export default class SpriteReader {
 		this.update = this.update.bind(this);
 
 		this.drawCache();
-		this.draw();
+
+		this.update(true);
 	}
 
 	// getAssociatedFrameNumber(name) {
@@ -96,18 +114,57 @@ export default class SpriteReader {
 	// 	}
 	// }
 
+	findPack() {
+
+
+	}
+
+	checkPack() {
+
+		if (this.getCurrentRelatedToPack() > _.get(this).json[_.get(this).currentPack].frames.length - 1) {
+
+			if (_.get(this).currentPack < _.get(this).multipackSize - 1) _.get(this).currentPack++;
+			else _.get(this).currentPack = 0;
+		}
+	}
+
+	getCurrentRelatedToPack() {
+
+		let increment = 0;
+
+		for (let i = 0; i < _.get(this).currentPack; i++) {
+
+			increment += _.get(this).json[i].frames.length;
+		}
+
+		return _.get(this).current - increment;
+	}
+
 	drawCache() {
+
+		const tmpCanvas = document.createElement('canvas');
 
 		for (let i = 0; i < _.get(this).multipackSize; i++) {
 
-			_.get(this).ctxCache[i].drawImage(_.get(this).image[i], 0, 0);
+			const tmpCache = tmpCanvas.cloneNode(false);
+			tmpCache.width = _.get(this).canvasCache[i].width;
+			tmpCache.height = _.get(this).canvasCache[i].height;
+
+			tmpCache.getContext('2d').drawImage(_.get(this).image[i], 0, 0);
+
+			const imgData = tmpCache.getContext('2d').getImageData(0, 0, tmpCache.width, tmpCache.height);
+
+			_.get(this).ctxCache[i].putImageData(imgData, 0, 0);
 		}
 	}
 
 	draw() {
 
-		const canvas = _.get(this).target;
-		const currentFrame = _.get(this).json.frames[_.get(this).current];
+		const canvas = _.get(this).canvasTarget;
+
+		this.checkPack();
+
+		const currentFrame = _.get(this).json[_.get(this).currentPack].frames[this.getCurrentRelatedToPack()];
 
 		const newSize = {
 			w: currentFrame.frame.w,
@@ -119,20 +176,20 @@ export default class SpriteReader {
 			y: 0
 		};
 
-		_.get(this).ctx.clearRect(0, 0, canvas.width, canvas.height);
+		_.get(this).ctxTarget.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (_.get(this).fillColor) {
 
-			_.get(this).ctx.fillRect(0, 0, canvas.width, canvas.height);
+			_.get(this).ctxTarget.fillRect(0, 0, canvas.width, canvas.height);
 		}
 
 		if (currentFrame.rotated) {
 
-			_.get(this).ctx.save();
-			_.get(this).ctx.translate(canvas.width / 2, canvas.height / 2);
-			_.get(this).ctx.rotate(-Math.PI / 2);
+			_.get(this).ctxTarget.save();
+			_.get(this).ctxTarget.translate(canvas.width / 2, canvas.height / 2);
+			_.get(this).ctxTarget.rotate(-Math.PI / 2);
 
-			_.get(this).ctx.translate(-canvas.height / 2, -canvas.width / 2);
+			_.get(this).ctxTarget.translate(-canvas.height / 2, -canvas.width / 2);
 
 			newSize.w = currentFrame.frame.h;
 			newSize.h = currentFrame.frame.w;
@@ -150,8 +207,8 @@ export default class SpriteReader {
 			}
 		}
 
-		_.get(this).ctx.drawImage(
-			_.get(this).cacheTarget,
+		_.get(this).ctxTarget.drawImage(
+			_.get(this).canvasCache[_.get(this).currentPack],
 			currentFrame.frame.x,
 			currentFrame.frame.y,
 			newSize.w,
@@ -162,12 +219,12 @@ export default class SpriteReader {
 			newSize.h
 		);
 
-		if (currentFrame.rotated) _.get(this).ctx.restore();
+		if (currentFrame.rotated) _.get(this).ctxTarget.restore();
 	}
 
-	update() {
+	update(force = false) {
 
-		if (!_.get(this).isPlaying) return;
+		if (!_.get(this).isPlaying && !force) return;
 
 		const now = performance.now();
 		const delta = now - _.get(this).then;
@@ -193,7 +250,11 @@ export default class SpriteReader {
 			}
 			else if (!_.get(this).repeat) _.get(this).isPlaying = false;
 
-			if (_.get(this).repeat) _.get(this).current = _.get(this).from;
+			if (_.get(this).repeat) {
+
+				_.get(this).current = _.get(this).from;
+				_.get(this).currentPack = 0;
+			}
 		}
 		else _.get(this).current += _.get(this).side;
 	}
@@ -250,9 +311,9 @@ export default class SpriteReader {
 		_.get(this).isPlaying = false;
 	}
 
-	get target() {
+	get canvasTarget() {
 
-		return _.get(this).target;
+		return _.get(this).canvasTarget;
 	}
 
 	set fps(nbr) {
