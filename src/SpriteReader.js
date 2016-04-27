@@ -29,7 +29,6 @@ export default class SpriteReader {
 			ctxCache: [],
 			ctxTarget: null,
 			current: from,
-			currentRelatedToPack: from,
 			currentPack: 0,
 			currentRepeat: 0,
 			fillColor,
@@ -86,7 +85,7 @@ export default class SpriteReader {
 			_.get(this).canvasTarget.style.width = `${_.get(this).canvasTarget.width / (retina ? 2 : 1)}px`;
 			_.get(this).canvasTarget.style.height = `${_.get(this).canvasTarget.height / (retina ? 2 : 1)}px`;
 
-			_.get(this).canvasTarget.setAttribute('moz-opaque', '');
+			// _.get(this).canvasTarget.setAttribute('moz-opaque', '');
 		}
 
 		_.get(this).ctxTarget = _.get(this).canvasTarget.getContext('2d');
@@ -116,7 +115,17 @@ export default class SpriteReader {
 
 	findPack() {
 
+		let currentTmp = 0;
+		let currentPackTmp = 0;
 
+		while (_.get(this).current > currentTmp) {
+
+			currentTmp += _.get(this).json[currentPackTmp].frames.length;
+
+			if (_.get(this).current > currentTmp) currentPackTmp++;
+		}
+
+		_.get(this).currentPack = currentPackTmp;
 	}
 
 	checkPack() {
@@ -239,9 +248,6 @@ export default class SpriteReader {
 
 			_.get(this).currentRepeat++;
 
-			if (!_.get(this).repeat && _.get(this).onComplete) _.get(this).onComplete();
-			else if (_.get(this).repeat && _.get(this).onRepeat) _.get(this).onRepeat();
-
 			if (_.get(this).repeat > 0 && _.get(this).currentRepeat > _.get(this).repeat - 1) {
 
 				if (_.get(this).onCompleteRepeat) _.get(this).onCompleteRepeat();
@@ -255,6 +261,9 @@ export default class SpriteReader {
 				_.get(this).current = _.get(this).from;
 				_.get(this).currentPack = 0;
 			}
+
+			if (!_.get(this).repeat && _.get(this).onComplete) _.get(this).onComplete();
+			else if (_.get(this).repeat && _.get(this).onRepeat) _.get(this).onRepeat();
 		}
 		else _.get(this).current += _.get(this).side;
 	}
@@ -303,6 +312,8 @@ export default class SpriteReader {
 
 		_.get(this).current = _.get(this).from;
 		_.get(this).side = from > to ? -1 : 1;
+
+		this.findPack();
 	}
 
 	goToAndStop(frame) {
