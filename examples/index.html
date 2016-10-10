@@ -1,10 +1,81 @@
 <!doctype html>
 <html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<title>Lib starter</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
 	<body>
+		<canvas id="canvas" width="1280" height="720"></canvas>
+
+		<script src="preloadjs-0.6.2.min.js"></script>
 		<script src="../dist/sprite-reader.js"></script>
 
 		<script>
+			function completeHandler() {
 
+				for (var i = 0; i < 145; i++) {
+
+					imgTab.push(queue.getResult('sprite-test' + i + '.png'));
+					jsonTab.push(queue.getResult('sprite-test' + i + '.json'));
+				}
+
+				startTime = performance.now();
+				console.log('start init');
+
+				/* using npm you will have to omit the .default */
+
+				reader = new SpriteReader.default({
+					image: imgTab,
+					json: jsonTab,
+					canvas: document.getElementById('canvas'),
+					loop: true,
+					fps: 60,
+					onRepeat: function() {
+
+						console.log('onrepeat');
+					},
+					onRepeatComplete: function() {
+
+						console.log('onrepeatcomplete');
+					},
+					onComplete: function() {
+
+						console.log('oncomplete');
+					}
+				});
+
+				console.log((performance.now() - startTime) / 1000);
+
+				requestAnimationFrame(raf);
+			}
+
+			function raf() {
+
+				requestAnimationFrame(raf);
+
+				if (reader) reader.update();
+			}
+
+			var reader;
+			var startTime;
+			var queue = new createjs.LoadQueue(true);
+			queue.setMaxConnections(6);
+			queue.maintainScriptOrder = false;
+
+			imgTab = [];
+			jsonTab = [];
+
+			queue.on('complete', completeHandler);
+
+			for (var i = 0; i < 145; i++) {
+
+				queue.loadFile('sprite-test' + i + '.json', false);
+				queue.loadFile('sprite-test' + i + '.png', false);
+			}
+
+			queue.load();
 		</script>
 	</body>
 </html>

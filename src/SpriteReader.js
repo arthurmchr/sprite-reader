@@ -1,9 +1,11 @@
-const _ = new WeakMap();
-
 export default class SpriteReader {
 
-	constructor(image, json, {
+	constructor({
+		image = null,
+		json = null,
+
 		autoplay = true,
+		canvas = null,
 		fillColor = null,
 		fps = 30,
 		from = 0,
@@ -13,167 +15,154 @@ export default class SpriteReader {
 		onRepeatComplete = null,
 		repeat = 0,
 		retina = false,
-		canvasTarget = null,
 		to = null
 	} = {}) {
 
 		if (!image) throw new Error('image parameter can not be null');
 		if (!json) throw new Error('json parameter can not be null');
 		if (image.length && json.length && image.length !== json.length) throw new Error('image length must be equal to json length');
-		if (image.length && !json.length || json.length && !image.length) throw new Error('image and json must be of same type');
-		if (loop && repeat) throw new Error('you can not have loop and repeat parameters defined');
 
-		_.set(this, {
-			canvasCache: [],
-			canvasTarget: canvasTarget ? canvasTarget : document.createElement('canvas'),
-			ctxCache: [],
-			ctxTarget: null,
-			current: from,
-			currentPack: 0,
-			currentRepeat: 0,
-			fillColor,
-			from,
-			image,
-			interval: 1000 / fps,
-			isPlaying: autoplay,
-			json,
-			multipackSize: image.length ? image.length : 1,
-			onComplete,
-			onRepeat,
-			onRepeatComplete,
-			repeat: loop ? -1 : repeat,
-			side: 1,
-			then: null,
-			to
-		});
+		this._image = image;
+		this._json = json;
 
-		if (!_.get(this).image.length) _.get(this).image = [_.get(this).image];
-		if (!_.get(this).json.length) _.get(this).json = [_.get(this).json];
+		this._canvasCache = [];
+		this._ctxCache = [];
+		this._packCached = 0;
+		this._canvasTarget = canvas || document.createElement('canvas');
+		this._ctxTarget = null;
 
-		if (_.get(this).to === null) {
+		this._multipackSize = image.length || 1;
+		this._currentPack = 0;
+		this._currentRepeat = 0;
+
+		this._from = from;
+		this._current = from;
+		this._to = to;
+
+		this._isPlaying = autoplay;
+		this._repeat = loop ? -1 : repeat;
+
+		this._fillColor = fillColor;
+
+		this._interval = 1000 / fps;
+		this._then = null;
+
+		this._onComplete = onComplete;
+		this._onRepeat = onRepeat;
+		this._onRepeatComplete = onRepeatComplete;
+
+		if (!this._image.length) this._image = [this._image];
+		if (!this._json.length) this._json = [this._json];
+
+		if (this._to === null) {
 
 			let total = 0;
 
-			for (let i = 0; i < _.get(this).multipackSize; i++) {
+			for (let i = 0; i < this._multipackSize; i++) {
 
-				total += _.get(this).json[i].frames.length;
+				total += this._json[i].frames.length;
 			}
 
-			_.get(this).to = total - 1;
+			this._to = total - 1;
 		}
+
+		this._side = this._from > this._to ? -1 : 1;
 
 		const tmpCanvas = document.createElement('canvas');
 
-		for (let i = 0; i < _.get(this).multipackSize; i++) {
+		for (let i = 0; i < this._multipackSize; i++) {
 
-			// _.get(this).image[i] = image[i];
-			// _.get(this).json[i] = json[i];
+			this._canvasCache[i] = tmpCanvas.cloneNode(false);
 
-			_.get(this).canvasCache[i] = tmpCanvas.cloneNode(false);
+			this._canvasCache[i].width = this._json[i].meta.size.w;
+			this._canvasCache[i].height = this._json[i].meta.size.h;
 
-			_.get(this).canvasCache[i].width = _.get(this).json[i].meta.size.w;
-			_.get(this).canvasCache[i].height = _.get(this).json[i].meta.size.h;
-
-			_.get(this).ctxCache[i] = _.get(this).canvasCache[i].getContext('2d');
+			this._ctxCache[i] = this._canvasCache[i].getContext('2d');
 		}
 
-		if (!canvasTarget) {
+		if (!canvas) {
 
-			_.get(this).canvasTarget.width = _.get(this).json[0].frames[0].sourceSize.w;
-			_.get(this).canvasTarget.height = _.get(this).json[0].frames[0].sourceSize.h;
+			this._canvasTarget.width = this._json[0].frames[0].sourceSize.w;
+			this._canvasTarget.height = this._json[0].frames[0].sourceSize.h;
 
-			_.get(this).canvasTarget.style.width = `${_.get(this).canvasTarget.width / (retina ? 2 : 1)}px`;
-			_.get(this).canvasTarget.style.height = `${_.get(this).canvasTarget.height / (retina ? 2 : 1)}px`;
-
-			// _.get(this).canvasTarget.setAttribute('moz-opaque', '');
+			Object.assign(this._canvasTarget.style, {
+				width: `${this._canvasTarget.width / (retina ? 2 : 1)}px`,
+				height: `${this._canvasTarget.height / (retina ? 2 : 1)}px`
+			});
 		}
 
-		_.get(this).ctxTarget = _.get(this).canvasTarget.getContext('2d');
+		this._ctxTarget = this._canvasTarget.getContext('2d');
 
-		if (fillColor) _.get(this).ctxTarget.fillStyle = fillColor;
-
-		// if (typeof from === 'string') _.get(this).from = this.getAssociatedFrameNumber(from);
-
-		// if (typeof to === 'string') _.get(this).to = this.getAssociatedFrameNumber(to);
-
-		if (from > _.get(this).to) _.get(this).side = -1;
-
-		this.update = this.update.bind(this);
-
-		this.drawCache();
+		if (fillColor) this._ctxTarget.fillStyle = fillColor;
 
 		this.update(true);
 	}
 
-	// getAssociatedFrameNumber(name) {
-
-	// 	for (let i = 0; i < _.get(this).json.length; i++) {
-
-	// 		if (_.get(this).json[i].filename === name) return i;
-	// 	}
-	// }
+	// find the pack that contains the current frame
 
 	findPack() {
 
 		let currentTmp = 0;
 		let currentPackTmp = 0;
 
-		while (_.get(this).current > currentTmp) {
+		while (this._current > currentTmp) {
 
-			currentTmp += _.get(this).json[currentPackTmp].frames.length;
+			currentTmp += this._json[currentPackTmp].frames.length;
 
-			if (_.get(this).current > currentTmp) currentPackTmp++;
+			if (this._current > currentTmp) currentPackTmp++;
 		}
 
-		_.get(this).currentPack = currentPackTmp;
+		this._currentPack = currentPackTmp;
 	}
+
+	// check if we are targeting outside the current pack
 
 	checkPack() {
 
-		if (this.getCurrentRelatedToPack() > _.get(this).json[_.get(this).currentPack].frames.length - 1) {
+		if (this.getCurrentRelatedToPack() > this._json[this._currentPack].frames.length - 1) {
 
-			if (_.get(this).currentPack < _.get(this).multipackSize - 1) _.get(this).currentPack++;
-			else _.get(this).currentPack = 0;
+			if (this._currentPack < this._multipackSize - 1) this._currentPack++;
+			else this._currentPack = 0;
 		}
 	}
+
+	// get an index0 based number related to the current pack
 
 	getCurrentRelatedToPack() {
 
 		let increment = 0;
 
-		for (let i = 0; i < _.get(this).currentPack; i++) {
+		for (let i = 0; i < this._currentPack; i++) increment += this._json[i].frames.length;
 
-			increment += _.get(this).json[i].frames.length;
-		}
-
-		return _.get(this).current - increment;
+		return this._current - increment;
 	}
 
-	drawCache() {
+	drawCache(index) {
 
 		const tmpCanvas = document.createElement('canvas');
+		const tmpCtx = tmpCanvas.getContext('2d');
 
-		for (let i = 0; i < _.get(this).multipackSize; i++) {
+		tmpCanvas.width = this._canvasCache[index].width;
+		tmpCanvas.height = this._canvasCache[index].height;
 
-			const tmpCache = tmpCanvas.cloneNode(false);
-			tmpCache.width = _.get(this).canvasCache[i].width;
-			tmpCache.height = _.get(this).canvasCache[i].height;
+		tmpCtx.drawImage(this._image[index], 0, 0);
+		const imgData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
+		this._ctxCache[index].putImageData(imgData, 0, 0);
 
-			tmpCache.getContext('2d').drawImage(_.get(this).image[i], 0, 0);
+		this._packCached++;
 
-			const imgData = tmpCache.getContext('2d').getImageData(0, 0, tmpCache.width, tmpCache.height);
+		// if you simply call the below line, you will have latency when switching pack
 
-			_.get(this).ctxCache[i].putImageData(imgData, 0, 0);
-		}
+		// this._ctxCache[i].drawImage(this._image[i], 0, 0);
 	}
 
 	draw() {
 
-		const canvas = _.get(this).canvasTarget;
+		const canvas = this._canvasTarget;
 
 		this.checkPack();
 
-		const currentFrame = _.get(this).json[_.get(this).currentPack].frames[this.getCurrentRelatedToPack()];
+		const currentFrame = this._json[this._currentPack].frames[this.getCurrentRelatedToPack()];
 
 		const newSize = {
 			w: currentFrame.frame.w,
@@ -185,20 +174,20 @@ export default class SpriteReader {
 			y: 0
 		};
 
-		_.get(this).ctxTarget.clearRect(0, 0, canvas.width, canvas.height);
+		this._ctxTarget.clearRect(0, 0, canvas.width, canvas.height);
 
-		if (_.get(this).fillColor) {
+		if (this._fillColor) {
 
-			_.get(this).ctxTarget.fillRect(0, 0, canvas.width, canvas.height);
+			this._ctxTarget.fillRect(0, 0, canvas.width, canvas.height);
 		}
 
 		if (currentFrame.rotated) {
 
-			_.get(this).ctxTarget.save();
-			_.get(this).ctxTarget.translate(canvas.width / 2, canvas.height / 2);
-			_.get(this).ctxTarget.rotate(-Math.PI / 2);
+			this._ctxTarget.save();
+			this._ctxTarget.translate(canvas.width / 2, canvas.height / 2);
+			this._ctxTarget.rotate(-Math.PI / 2);
 
-			_.get(this).ctxTarget.translate(-canvas.height / 2, -canvas.width / 2);
+			this._ctxTarget.translate(-canvas.height / 2, -canvas.width / 2);
 
 			newSize.w = currentFrame.frame.h;
 			newSize.h = currentFrame.frame.w;
@@ -216,8 +205,8 @@ export default class SpriteReader {
 			}
 		}
 
-		_.get(this).ctxTarget.drawImage(
-			_.get(this).canvasCache[_.get(this).currentPack],
+		this._ctxTarget.drawImage(
+			this._canvasCache[this._currentPack],
 			currentFrame.frame.x,
 			currentFrame.frame.y,
 			newSize.w,
@@ -228,134 +217,138 @@ export default class SpriteReader {
 			newSize.h
 		);
 
-		if (currentFrame.rotated) _.get(this).ctxTarget.restore();
+		if (currentFrame.rotated) this._ctxTarget.restore();
 	}
 
 	update(force = false) {
 
-		if (!_.get(this).isPlaying && !force) return;
+		if (this._packCached < this._multipackSize) this.drawCache(this._packCached);
+
+		if (!this._isPlaying && !force) return;
 
 		const now = performance.now();
-		const delta = now - _.get(this).then;
+		const delta = now - this._then;
 
-		if (delta < _.get(this).interval) return;
+		if (delta < this._interval && !force) return;
 
-		_.get(this).then = now - delta % _.get(this).interval;
+		this._then = now - delta % this._interval;
 
 		this.draw();
 
-		if (_.get(this).current === _.get(this).to) {
+		if (this._current === this._to) {
 
-			_.get(this).currentRepeat++;
+			if (this._repeat) {
 
-			if (_.get(this).repeat > 0 && _.get(this).currentRepeat > _.get(this).repeat - 1) {
+				this._currentRepeat++;
+				this._current = this._from;
+				this._currentPack = 0;
 
-				if (_.get(this).onCompleteRepeat) _.get(this).onCompleteRepeat();
+				if (this._onRepeat) this._onRepeat();
 
-				_.get(this).isPlaying = false;
+				if (this._repeat > 0 && this._currentRepeat > this._repeat) {
+
+					this._isPlaying = false;
+
+					if (this._onRepeatComplete) this._onRepeatComplete();
+				}
 			}
-			else if (!_.get(this).repeat) _.get(this).isPlaying = false;
+			else {
 
-			if (_.get(this).repeat) {
+				this._isPlaying = false;
 
-				_.get(this).current = _.get(this).from;
-				_.get(this).currentPack = 0;
+				if (this._onComplete) this._onComplete();
 			}
-
-			if (!_.get(this).repeat && _.get(this).onComplete) _.get(this).onComplete();
-			else if (_.get(this).repeat && _.get(this).onRepeat) _.get(this).onRepeat();
 		}
-		else _.get(this).current += _.get(this).side;
+		else this._current += this._side;
 	}
 
 	play() {
 
-		_.get(this).isPlaying = true;
+		this._isPlaying = true;
 	}
 
 	pause() {
 
-		_.get(this).isPlaying = false;
+		this._isPlaying = false;
 	}
 
 	stop() {
 
-		_.get(this).isPlaying = false;
-		_.get(this).current = _.get(this).from;
+		this._isPlaying = false;
+		this._current = this._from;
 	}
 
 	reverse(side) {
 
-		if (side === 1 || side === -1) _.get(this).side = side;
-		else _.get(this).side = _.get(this).side === 1 ? -1 : 1;
+		if (side === 1 || side === -1) this._side = side;
+		else this._side = this._side === 1 ? -1 : 1;
 
-		const tmpFrom = _.get(this).from;
-		const tmpTo = _.get(this).to;
+		const tmpFrom = this._from;
+		const tmpTo = this._to;
 
-		if (_.get(this).side === 1) {
-
-			_.get(this).from = Math.min(tmpFrom, tmpTo);
-			_.get(this).to = Math.max(tmpFrom, tmpTo);
-		}
-		else {
-
-			_.get(this).from = Math.max(tmpFrom, tmpTo);
-			_.get(this).to = Math.min(tmpFrom, tmpTo);
-		}
+		this._side === 1 ? this._from = Math.min(tmpFrom, tmpTo) : Math.max(tmpFrom, tmpTo);
+		this._side === 1 ? this._to = Math.max(tmpFrom, tmpTo) : Math.min(tmpFrom, tmpTo);
 	}
 
 	goFromTo(from, to) {
 
-		if (from >= 0) _.get(this).from = from;
+		if (from >= 0) this._from = from;
 
-		if (to >= 0) _.get(this).to = to;
+		if (to >= 0) this._to = to;
 
-		_.get(this).current = _.get(this).from;
-		_.get(this).side = from > to ? -1 : 1;
+		this._current = this._from;
+		this._side = from > to ? -1 : 1;
 
 		this.findPack();
 	}
 
 	goToAndStop(frame) {
 
-		_.get(this).current = frame;
-		_.get(this).isPlaying = false;
+		this._current = frame;
+		this._isPlaying = false;
 	}
 
-	get canvasTarget() {
+	destroy() {
 
-		return _.get(this).canvasTarget;
+		this._isPlaying = false;
+
+		this._ctxTarget.clearRect(0, 0, this._canvasTarget.width, this._canvasTarget.height);
+	}
+
+	get canvas() {
+
+		return this._canvasTarget;
 	}
 
 	set fps(nbr) {
 
-		_.get(this).interval = 1000 / nbr;
+		this._interval = 1000 / nbr;
 	}
 
-	set loop(state) {
+	set loop(val) {
 
-		if (state) _.get(this).repeat = -1;
-		else if (_.get(this).repeat === -1) _.get(this).repeat = 0;
+		if (val) this._repeat = -1;
+		else if (this._repeat === -1) this._repeat = 0;
 	}
 
 	set repeat(nbr) {
 
-		_.get(this).repeat = nbr;
-		_.get(this).currentRepeat = 0;
+		this._repeat = nbr;
+		this._currentRepeat = 0;
 	}
 
 	set onComplete(fn) {
 
-		_.get(this).onComplete = fn;
+		this._onComplete = fn;
 	}
 
 	set onRepeat(fn) {
 
-		_.get(this).onRepeat = fn;
+		this._onRepeat = fn;
 	}
 
 	set onRepeatComplete(fn) {
 
-		_.get(this).onRepeatComplete = fn;
+		this._onRepeatComplete = fn;
 	}
 }

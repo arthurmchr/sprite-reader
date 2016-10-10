@@ -1,0 +1,14 @@
+#!/bin/sh
+
+files=$(git diff --cached --name-only --diff-filter=ACM | grep "^src\/.*.js$")
+
+echo $files | xargs ./node_modules/.bin/eslint
+
+rc=$?
+
+if [[ $rc != 0 ]] ; then
+	echo "ESLint check failed, commit denied"
+	exit 1
+fi
+
+exit 0
