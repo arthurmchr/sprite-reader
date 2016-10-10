@@ -32,6 +32,12 @@
 					canvas: document.getElementById('canvas'),
 					loop: true,
 					fps: 60,
+					// autoplay: false,
+					onReady: function() {
+
+						console.log('onready');
+						// reader.play();
+					},
 					onRepeat: function() {
 
 						console.log('onrepeat');

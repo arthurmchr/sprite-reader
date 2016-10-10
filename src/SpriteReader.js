@@ -10,6 +10,7 @@ export default class SpriteReader {
 		fps = 30,
 		from = 0,
 		loop = false,
+		onReady = null,
 		onComplete = null,
 		onRepeat = null,
 		onRepeatComplete = null,
@@ -47,6 +48,7 @@ export default class SpriteReader {
 		this._interval = 1000 / fps;
 		this._then = null;
 
+		this._onReady = onReady;
 		this._onComplete = onComplete;
 		this._onRepeat = onRepeat;
 		this._onRepeatComplete = onRepeatComplete;
@@ -150,6 +152,8 @@ export default class SpriteReader {
 		this._ctxCache[index].putImageData(imgData, 0, 0);
 
 		this._packCached++;
+
+		if (this._packCached === this._multipackSize && this._onReady) this._onReady();
 
 		// if you simply call the below line, you will have latency when switching pack
 
