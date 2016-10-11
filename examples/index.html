@@ -15,6 +15,10 @@
 		<script>
 			function completeHandler() {
 
+				var startTime;
+				var imgTab = [];
+				var jsonTab = [];
+
 				for (var i = 0; i < 145; i++) {
 
 					imgTab.push(queue.getResult('sprite-test' + i + '.png'));
@@ -65,13 +69,9 @@
 			}
 
 			var reader;
-			var startTime;
 			var queue = new createjs.LoadQueue(true);
 			queue.setMaxConnections(6);
 			queue.maintainScriptOrder = false;
-
-			imgTab = [];
-			jsonTab = [];
 
 			queue.on('complete', completeHandler);
 

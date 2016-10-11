@@ -16,6 +16,7 @@ export default class SpriteReader {
 		onRepeatComplete = null,
 		repeat = 0,
 		retina = false,
+		side = null,
 		to = null
 	} = {}) {
 
@@ -68,7 +69,18 @@ export default class SpriteReader {
 			this._to = total - 1;
 		}
 
-		this._side = this._from > this._to ? -1 : 1;
+		this._side = side;
+
+		if (!this._side && this._from > this._to) this._side = -1;
+		else if (this._side === -1) {
+
+			const tmpFrom = this._from;
+			const tmpTo = this._to;
+
+			this._from = Math.max(tmpFrom, tmpTo);
+			this._to = Math.min(tmpFrom, tmpTo);
+		}
+		else this._side = 1;
 
 		const tmpCanvas = document.createElement('canvas');
 
@@ -139,8 +151,9 @@ export default class SpriteReader {
 		return this._current - increment;
 	}
 
-	drawCache(index) {
+	drawCache() {
 
+		const index = this._packCached;
 		const tmpCanvas = document.createElement('canvas');
 		const tmpCtx = tmpCanvas.getContext('2d');
 
@@ -226,7 +239,7 @@ export default class SpriteReader {
 
 	update(force = false) {
 
-		if (this._packCached < this._multipackSize) this.drawCache(this._packCached);
+		if (this._packCached < this._multipackSize) this.drawCache();
 
 		if (!this._isPlaying && !force) return;
 

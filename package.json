@@ -1,7 +1,7 @@
 {
-	"name": "lib-starter",
+	"name": "sprite-reader",
 	"version": "0.1.0",
-	"description": "Lib Architecture",
+	"description": "Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).",
 	"author": "Arthur Muchir <arthur.muchir@gmail.com>",
 	"license": "MIT",
 	"main" : "dist/sprite-reader.min.js",
@@ -17,10 +17,10 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/arthurmuchir/moon.git"
+		"url": "https://github.com/arthurmuchir/sprite-reader"
 	},
 	"bugs": {
-		"url": "https://github.com/arthurmuchir/moon/issues"
+		"url": "https://github.com/arthurmuchir/sprite-reader/issues"
 	},
 	"keywords": [],
 	"browserify-shim": {},
