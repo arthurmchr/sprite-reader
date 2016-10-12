@@ -1,42 +1,42 @@
 {
-	"name": "sprite-reader",
-	"version": "0.1.0",
-	"description": "Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).",
-	"author": "Arthur Muchir <arthur.muchir@gmail.com>",
-	"license": "MIT",
-	"main" : "dist/sprite-reader.min.js",
-	"scripts": {
-		"clean": "rm -rf dist",
-		"watch": "npm run clean && parallelshell 'npm run watch:lint' 'npm run watch:js'",
-		"watch:lint": "esw -w src",
-		"watch:js": "mkdir -p dist && watchify src/SpriteReader.js -vd -t browserify-shim -t [ babelify --presets [ es2015 ] ] -t brfs -s SpriteReader -o dist/sprite-reader.js",
-		"build": "npm run build:lint && npm run clean && npm run build:js && npm run build:uglify",
-		"build:lint": "esw src",
-		"build:js": "mkdir dist && browserify src/SpriteReader.js -d -t browserify-shim -t [ babelify --presets [ es2015 ] ] -t brfs -t [ uglifyify -x .js ] | exorcist dist/sprite-reader.js.map > dist/sprite-reader.js",
-		"build:uglify": "uglifyjs -cm --in-source-map dist/sprite-reader.js.map --source-map dist/sprite-reader.min.js.map --source-map-url sprite-reader.min.js.map -o dist/sprite-reader.min.js dist/sprite-reader.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/arthurmuchir/sprite-reader"
-	},
-	"bugs": {
-		"url": "https://github.com/arthurmuchir/sprite-reader/issues"
-	},
-	"keywords": [],
-	"browserify-shim": {},
-	"devDependencies": {
-		"babel-preset-es2015": "6.16.0",
-		"babelify": "7.3.0",
-		"brfs": "1.4.3",
-		"browserify": "13.1.0",
-		"browserify-shim": "3.8.12",
-		"eslint": "3.7.1",
-		"eslint-watch": "2.1.14",
-		"exorcist": "0.4.0",
-		"parallelshell": "2.0.0",
-		"uglify": "0.1.5",
-		"uglifyify": "3.0.3",
-		"watchify": "3.7.0"
-	},
-	"dependencies": {}
+  "name": "sprite-reader",
+  "version": "0.1.0",
+  "description": "Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).",
+  "author": "Arthur Muchir <arthur.muchir@gmail.com>",
+  "license": "MIT",
+  "main" : "dist/sprite-reader.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "watch": "npm run clean && parallelshell 'npm run watch:lint' 'npm run watch:js'",
+    "watch:lint": "esw -w src",
+    "watch:js": "mkdir -p dist && watchify src/SpriteReader.js -vd -t browserify-shim -t [ babelify --presets [ es2015 ] ] -t brfs -s SpriteReader -o dist/sprite-reader.js",
+    "build": "npm run build:lint && npm run clean && npm run build:js && npm run build:uglify",
+    "build:lint": "esw src",
+    "build:js": "mkdir dist && browserify src/SpriteReader.js -d -t browserify-shim -t [ babelify --presets [ es2015 ] ] -t brfs -t [ uglifyify -x .js ] -s SpriteReader | exorcist dist/sprite-reader.js.map > dist/sprite-reader.js",
+    "build:uglify": "uglifyjs -cm --in-source-map dist/sprite-reader.js.map --source-map dist/sprite-reader.js.map --source-map-url sprite-reader.js.map -o dist/sprite-reader.js dist/sprite-reader.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthurmuchir/sprite-reader"
+  },
+  "bugs": {
+    "url": "https://github.com/arthurmuchir/sprite-reader/issues"
+  },
+  "keywords": [],
+  "browserify-shim": {},
+  "devDependencies": {
+    "babel-preset-es2015": "6.16.0",
+    "babelify": "7.3.0",
+    "brfs": "1.4.3",
+    "browserify": "13.1.0",
+    "browserify-shim": "3.8.12",
+    "eslint": "3.7.1",
+    "eslint-watch": "2.1.14",
+    "exorcist": "0.4.0",
+    "parallelshell": "2.0.0",
+    "uglify": "0.1.5",
+    "uglifyify": "3.0.3",
+    "watchify": "3.7.0"
+  },
+  "dependencies": {}
 }
