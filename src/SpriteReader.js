@@ -1,9 +1,6 @@
 export default class SpriteReader {
 
-	constructor({
-		image = null,
-		json = null,
-
+	constructor(image = null, json = null, {
 		autoplay = true,
 		canvas = null,
 		fillColor = null,
@@ -16,7 +13,7 @@ export default class SpriteReader {
 		onRepeatComplete = null,
 		repeat = 0,
 		retina = false,
-		side = null,
+		reverse = false,
 		to = null
 	} = {}) {
 
@@ -69,10 +66,9 @@ export default class SpriteReader {
 			this._to = total - 1;
 		}
 
-		this._side = side;
+		this._side = reverse || this._from > this._to ? -1 : 1;
 
-		if (!this._side && this._from > this._to) this._side = -1;
-		else if (this._side === -1) {
+		if (this._side === -1 && this._from < this._to) {
 
 			const tmpFrom = this._from;
 			const tmpTo = this._to;
@@ -80,7 +76,6 @@ export default class SpriteReader {
 			this._from = Math.max(tmpFrom, tmpTo);
 			this._to = Math.min(tmpFrom, tmpTo);
 		}
-		else this._side = 1;
 
 		const tmpCanvas = document.createElement('canvas');
 
@@ -295,9 +290,9 @@ export default class SpriteReader {
 		this._current = this._from;
 	}
 
-	reverse(side) {
+	reverse(force = null) {
 
-		if (side === 1 || side === -1) this._side = side;
+		if (force !== null) this._side = force ? 1 : -1;
 		else this._side = this._side === 1 ? -1 : 1;
 
 		const tmpFrom = this._from;

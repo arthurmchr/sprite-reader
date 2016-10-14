@@ -1,41 +1,23 @@
-# sprite-reader
+sprite-reader
+=============
 
 Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).
 
-#### Why sprite-reader ?
+Installation
+============
 
-- cache image in an offscreen canvas to optimize further calls.
-- sprite `update` function has to be called in a requestAnimationFrame loop by your own. Therefore, there is only one raf to handle, not multiple ones.
+```
+npm install -S sprite-reader
+```
 
-#### Requirements
-
-Generating sprite of maxsize 2048 * 2048 seems to give the best result.
-
-##### With multipack
-
-In order to work with multipack (and only in that case), TexturePacker configuration must follow some rules :
-- `Algorithm: Basic`
-- `Sort by: Name`
-- `Sort order: Ascending`
-- `Detect identical sprites` has to be unchecked
-
-#### Browser compatibility
-
-Should works in IE9+ browsers (canvas compatibility).
-
-For IE9 support you will have to install :
-- `perfnow` polyfill with `npm install -S perfnow`
-
-## Installation
-
-`npm install -S sprite-reader`
-
-## Example
+How to use
+==========
 
 ```javascript
 var SpriteReader = require('sprite-reader');
 
 var reader;
+
 var img = new Image();
 img.onload = function() {
 	
@@ -56,69 +38,149 @@ function anim() {
 }
 ```
 
-## Documentation
+##### With multipack
 
-##### Constructor
+In order to work with multipack (and only in that case), TexturePacker configuration must follow some configuration rules :
+- `Algorithm: Basic`
+- `Sort by: Name`
+- `Sort order: Ascending`
+- `Detect identical sprites` has to be unchecked
+
+Documentation
+=============
+
+### Constructor
 
 ```javascript
-new SpriteReader({
-	image: [], // an image or an array of images
-	json: [] // the associated data or array of datas. Must be equals to image length
-});
+new SpriteReader(image, json[, options]);
 ```
 
-###### Options
+#### image `Array[Image]`
+The loaded images which contain the sprites. Single `Image` can be passed without array.
 
-Name | Type | Default | Description
----- | ---- | ------- | -----------
-autoplay | Boolean | true | Does animation start playing immediately
-canvas | Dom Element | null | The targeting canvas element. If not provided, one will be created and must be inserted (accessible through getter)
-fillColor | Hex color | null | A color to fill the background
-fps | Number | 30 | FPS to play the animation
-from | Int | 0 | Starting frame
-loop | Boolean | false | Does animation must loop when it reachs the to frame
-onReady | Function | null | A function to be called when all sprites have been cached 
-onComplete | Function | null | A function to be called
-onRepeat | Function | null | Function to be called at each repeat
-onRepeatComplete | Function | null | Function to be called when the animation has finish his repeat
-repeat | Int | 0 | How many time the animation should repeat
-retina | Boolean | false | If true, the created canvas (if no one was provided) would be styled with width and height divided by 2
-side | Int | 1 | If -1, animation will be played in reverse side 
-to | Int | image.length - 1 | Define at which frame to stop the animation
+#### json `Array[Object]`
+JSON datas associated to `image` order. Length of the array must be equals to `image` length.
 
-##### Methods
+---
 
-Name | Options | Description
----- | ------- | -----------
-update() | force:Boolean (false) | Update the current sprite according to the FPS. This has to ba called by your own in a raf. If force is set to true, FPS will be ignore and frame will be incremented
-play() | | Start playing from last known position
-pause() | | Pause at current position
-stop() | | Stop playing and set current position to from value
-reverse() | side:Int (null) | Switch playing side. `-1` or `1` can be pass to force side 
-goFromTo() | from:Int (null), to:Int (null) | Set cursor to from/to values
-goToAndStop() | frame:Int* | Go to frame number and stop playing
-destroy() | | Clean the current sprite
+### Options
 
-##### Properties
+#### autoplay `Boolean` `true`
+Start playing immediately when instanciated
 
-###### Getters
+#### canvas `Canvas` `null` 
+The targeting canvas element. If not provided, one will be created and must be inserted, accessible through `canvas` property.
 
-Name | Description
----- | -----------
-canvas | return the targeting canvas. If no canvas was given to the constructor, you will have to add this to your page
+#### fillColor `Hex` `null`
+Fill background color
+
+#### fps `Number` `30`
+FPS of the animation
+
+#### from `Number` `0`
+Starting sprite
+
+#### loop `Boolean` `false`
+Loop when it reaches `to` value
+
+#### onReady `Function` `null`
+Called when all sprites have been cached 
+
+#### onComplete `Function` `null`
+Called when the animation complete. Does not work if repeat is set.
+
+#### onRepeat `Function` `null`
+Called at each repeat
+
+#### onRepeatComplete `Function` `null`
+Called when the animation has played all repeat
+
+#### repeat `Number` `0`
+How many time the animation should repeat
+
+#### retina `Boolean` `false`
+If true, the created canvas (if no one was provided) would be styled with `width` and `height` divided by 2
+
+#### reverse `Boolean` `false`
+If `true`, animation will be played in reverse side 
+
+#### to `Number` `null`
+Frame to stop the animation
+
+---
+
+### Methods
+
+#### update([force])
+Update the current sprite according to `fps`. This method has to ba called by your own in a raf.
+- **force** `Boolean` `false` : If `force` is set to `true`, FPS will be ignore and current frame will be updated
+
+#### play()
+Start playing from last known position
+
+#### pause()
+Pause at current position
+
+#### stop()
+Stop playing and set current position to `from` value
+
+#### reverse([side])
+Switch playing side, optionaly forcing it
+- **side** `Boolean` `null` Switch playing side. If side is set to `true`, normal side will be forced; `false` will force reverse.
+
+#### goFromTo([from, to])
+`from` or `to` can be omitted.
+- **from** `Number` : Set starting frame and go to it
+- **to** `Number` : Set ending frame
+
+#### goToAndStop(frame)
+- **frame** `Number` : move cursor to `frame` and stop playing
+
+#### destroy()
+Clear the canvas and stop it
+
+---
+
+### Properties
+
+###### Getter
+
+#### canvas `Canvas`
+Return the targeting canvas. If no canvas was given to the constructor, you will have to add this to your page.
+
 
 ###### Setters
 
-Name | Type | Description
----- | ---- | -----------
-fps | Number | Set fps of the animation
-loop | Boolean | Set animation looping status
-repeat | Number | How many time the animation must be repeated after the first complete
-onComplete | Function | Function to be called once when animation complete. Does not trigger if loop is set to true
-onRepeat | Function | Function to be called at each repeat
-onRepeatComplete | Function | Function to be called when the animation has finish his repeat
+#### fps `Number`
+FPS of the animation
 
-#### Contribute
+#### loop `Boolean`
+Loop when it reaches `to` value
+
+#### repeat `Number`
+How many time the animation should repeat
+
+#### onComplete `Function`
+Called when the animation complete. Does not work if repeat is set.
+
+#### onRepeat `Function`
+Called at each repeat
+
+#### onRepeatComplete `Function`
+Called when the animation has played all repeat
+
+---
+
+Browser compatibility
+---------------------
+
+Should works in IE9+ browsers (canvas compatibility).
+
+For IE9 support you will have to install :
+- `perfnow` polyfill with `npm install -S perfnow`
+
+Contribute
+----------
 
 First you should install [EditorConfig](http://editorconfig.org/) package in your code editor. Then,
 
@@ -130,5 +192,5 @@ npm install
 ```
 
 Then 2 commands are available :
-- `npm run watch` watch js files
+- `npm run watch` watch and build js files
 - `npm run build` clean, build and uglify js files
