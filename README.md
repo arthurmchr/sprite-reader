@@ -126,7 +126,7 @@ Stop playing and set current position to `from` value
 
 #### reverse([side])
 Switch playing side, optionaly forcing it
-- **side** `Boolean` `null` Switch playing side. If side is set to `true`, normal side will be forced; `false` will force reverse.
+- **side** `Boolean` `null` : Switch playing side. If side is set to `true`, normal side will be forced; `false` will force reverse.
 
 #### goFromTo([from, to])
 `from` or `to` can be omitted.
@@ -134,7 +134,7 @@ Switch playing side, optionaly forcing it
 - **to** `Number` : Set ending frame
 
 #### goToAndStop(frame)
-- **frame** `Number` : move cursor to `frame` and stop playing
+- **frame** `Number` : Move cursor to `frame` and stop playing
 
 #### destroy()
 Clear the canvas and stop it
@@ -146,7 +146,7 @@ Clear the canvas and stop it
 ###### Getter
 
 #### canvas `Canvas`
-Return the targeting canvas. If no canvas was given to the constructor, you will have to add this to your page.
+Return the targeting canvas. If no `canvas` was given to the constructor, you will have to add this to your page.
 
 
 ###### Setters

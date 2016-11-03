@@ -298,8 +298,8 @@ export default class SpriteReader {
 		const tmpFrom = this._from;
 		const tmpTo = this._to;
 
-		this._side === 1 ? this._from = Math.min(tmpFrom, tmpTo) : Math.max(tmpFrom, tmpTo);
-		this._side === 1 ? this._to = Math.max(tmpFrom, tmpTo) : Math.min(tmpFrom, tmpTo);
+		this._from = this._side === 1 ? Math.min(tmpFrom, tmpTo) : Math.max(tmpFrom, tmpTo);
+		this._to = this._side === 1 ? Math.max(tmpFrom, tmpTo) : Math.min(tmpFrom, tmpTo);
 	}
 
 	goFromTo(from, to) {

@@ -24,9 +24,12 @@
   },
   "keywords": [
     "TexturePacker",
+    "Texture Packer",
     "Sprite",
     "Spritesheet",
-    "Animation"
+    "Animation",
+    "Canvas",
+    "MovieClip"
   ],
   "browserify-shim": {},
   "devDependencies": {
