@@ -1,6 +1,6 @@
 {
   "name": "sprite-reader",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Little TexturePacker animation engine. It allows you to play in a canvas your TexturePacker JSON export (array typed).",
   "author": "Arthur Muchir <arthur.muchir@gmail.com>",
   "license": "MIT",
