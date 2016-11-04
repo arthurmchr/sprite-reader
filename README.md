@@ -21,10 +21,7 @@ var reader;
 var img = new Image();
 img.onload = function() {
 	
-	reader = new SpriteReader({
-		image: img,
-		json: require('sprite-data.json')
-	});
+	reader = new SpriteReader(img, require('sprite-data.json'));
 
 	anim();
 };

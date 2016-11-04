@@ -19,7 +19,7 @@ export default class SpriteReader {
 
 		if (!image) throw new Error('image parameter can not be null');
 		if (!json) throw new Error('json parameter can not be null');
-		if (image.length && json.length && image.length !== json.length) throw new Error('image length must be equal to json length');
+		if (Array.isArray(image) && Array.isArray(json) && image.length !== json.length) throw new Error('image length must be equal to json length');
 
 		this._image = image;
 		this._json = json;
@@ -51,8 +51,8 @@ export default class SpriteReader {
 		this._onRepeat = onRepeat;
 		this._onRepeatComplete = onRepeatComplete;
 
-		if (!this._image.length) this._image = [this._image];
-		if (!this._json.length) this._json = [this._json];
+		if (!Array.isArray(this._image)) this._image = [this._image];
+		if (!Array.isArray(this._json)) this._json = [this._json];
 
 		if (this._to === null) {
 
@@ -318,6 +318,8 @@ export default class SpriteReader {
 
 		this._current = frame;
 		this._isPlaying = false;
+
+		this.update(true);
 	}
 
 	destroy() {
