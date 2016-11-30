@@ -319,6 +319,8 @@ export default class SpriteReader {
 		this._current = frame;
 		this._isPlaying = false;
 
+		this.findPack();
+
 		this.update(true);
 	}
 
