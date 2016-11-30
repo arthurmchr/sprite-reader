@@ -54,16 +54,16 @@ export default class SpriteReader {
 		if (!Array.isArray(this._image)) this._image = [this._image];
 		if (!Array.isArray(this._json)) this._json = [this._json];
 
+		this._total = 0;
+
+		for (let i = 0; i < this._multipackSize; i++) {
+
+			this._total += this._json[i].frames.length;
+		}
+
 		if (this._to === null) {
 
-			let total = 0;
-
-			for (let i = 0; i < this._multipackSize; i++) {
-
-				total += this._json[i].frames.length;
-			}
-
-			this._to = total - 1;
+			this._to = this._total - 1;
 		}
 
 		this._side = reverse || this._from > this._to ? -1 : 1;
@@ -271,7 +271,7 @@ export default class SpriteReader {
 				if (this._onComplete) this._onComplete();
 			}
 		}
-		else this._current += this._side;
+		else if (!force) this._current += this._side;
 	}
 
 	play() {
@@ -332,6 +332,16 @@ export default class SpriteReader {
 	get canvas() {
 
 		return this._canvasTarget;
+	}
+
+	get current() {
+
+		return this._current;
+	}
+
+	get total() {
+
+		return this._total;
 	}
 
 	set fps(nbr) {
